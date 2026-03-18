@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { DiaryWithLikeScrap } from "../api/types";
 import { toggleDiaryLike, toggleDiaryScrap } from "../api/client";
 
@@ -10,6 +11,7 @@ interface DiaryCardProps {
 }
 
 export function DiaryCard({ diary }: DiaryCardProps) {
+  const router = useRouter();
   const [liked, setLiked] = useState(diary.liked);
   const [likeCount, setLikeCount] = useState(diary.likeCount);
   const [scrapped, setScrapped] = useState(diary.scrapped);
@@ -60,7 +62,16 @@ export function DiaryCard({ diary }: DiaryCardProps) {
   const preview = diary.content.trim().slice(0, 120);
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60">
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(`/diaries/${diary.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") router.push(`/diaries/${diary.id}`);
+      }}
+      className="cursor-pointer rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:bg-zinc-900"
+      aria-label={`일기 상세 보기: ${diary.title}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50">
@@ -77,7 +88,10 @@ export function DiaryCard({ diary }: DiaryCardProps) {
         <div className="flex shrink-0 items-start gap-2">
           <button
             type="button"
-            onClick={handleToggleLike}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleLike();
+            }}
             disabled={likeLoading}
             className="flex items-center gap-1 rounded-xl bg-zinc-50 px-2 py-1 ring-1 ring-zinc-100 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-950 dark:ring-zinc-800"
             aria-label="일기 좋아요 토글"
@@ -90,7 +104,10 @@ export function DiaryCard({ diary }: DiaryCardProps) {
 
           <button
             type="button"
-            onClick={handleToggleScrap}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleScrap();
+            }}
             disabled={scrapLoading}
             className="flex h-[34px] w-[34px] items-center justify-center rounded-xl bg-zinc-50 ring-1 ring-zinc-100 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-950 dark:ring-zinc-800"
             aria-label="일기 스크랩 토글"

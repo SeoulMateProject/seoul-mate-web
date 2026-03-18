@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function GET(request: Request, context: RouteContext) {
@@ -19,7 +19,7 @@ export async function GET(request: Request, context: RouteContext) {
   const skip = Number(offsetParam) || 0;
 
   const baseDiary = await prisma.diary.findUnique({
-    where: { id: context.params.id },
+    where: { id: (await context.params).id },
     select: { id: true, placeId: true },
   });
 

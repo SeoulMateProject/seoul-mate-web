@@ -3,14 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function GET(request: Request, context: RouteContext) {
   const diary = await prisma.diary.findUnique({
-    where: { id: context.params.id },
+    where: { id: (await context.params).id },
   });
 
   if (!diary) {
@@ -69,7 +69,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const diary = await prisma.diary.findUnique({
-    where: { id: context.params.id },
+    where: { id: (await context.params).id },
   });
 
   if (!diary) {
@@ -101,7 +101,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   const diary = await prisma.diary.findUnique({
-    where: { id: context.params.id },
+    where: { id: (await context.params).id },
   });
 
   if (!diary) {
