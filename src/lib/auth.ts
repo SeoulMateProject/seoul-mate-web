@@ -1,7 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { prisma } from "@/lib/prisma";
-import type { User as PrismaUser } from "@prisma/client";
+import type { User as PrismaUser } from "@/generated/prisma/client";
 
 export async function getUserFromRequest(request: Request): Promise<User | null> {
   const authHeader = request.headers.get("authorization") ?? "";

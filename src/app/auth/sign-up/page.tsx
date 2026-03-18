@@ -48,7 +48,12 @@ export default function SignUpPage() {
         return;
       }
 
-      router.push("/auth/sign-in?from=sign-up");
+      const token = result.data.session?.access_token;
+      if (token) {
+        window.localStorage.setItem("access_token", token);
+      }
+
+      router.push("/");
     } catch (e) {
       console.error(e);
       setError("알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");

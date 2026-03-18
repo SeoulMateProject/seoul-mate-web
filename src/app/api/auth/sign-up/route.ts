@@ -37,5 +37,5 @@ export async function POST(request: Request) {
     },
   });
 
-  return NextResponse.json({ user }, { status: 201 });
+  return NextResponse.json({ user, session: data.session }, { status: 201 });
 }
