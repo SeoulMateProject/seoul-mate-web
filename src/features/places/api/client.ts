@@ -70,3 +70,30 @@ export async function fetchTrendingPlaces(
 
   return getJson<PaginatedResponse<TrendingPlace>>(`/api/places/trending${query}`);
 }
+
+function getAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem("access_token");
+}
+
+export async function togglePlaceLike(placeId: string): Promise<{ liked: boolean }> {
+  const accessToken = getAccessToken();
+  if (!accessToken) {
+    throw new Error("Unauthorized");
+  }
+
+  const res = await fetch(`/api/places/${placeId}/like`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    const message = text || `Request failed: ${res.status} ${res.statusText}`;
+    throw new Error(message);
+  }
+
+  return (await res.json()) as { liked: boolean };
+}
