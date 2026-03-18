@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { TrendingPlace } from "../api/client";
 import { togglePlaceLike } from "../api/client";
 
@@ -10,6 +11,7 @@ interface PlaceTrendingCardProps {
 }
 
 export function PlaceTrendingCard({ place }: PlaceTrendingCardProps) {
+  const router = useRouter();
   const [liked, setLiked] = useState(place.liked);
   const [likeCount, setLikeCount] = useState(place.likeCount);
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,16 @@ export function PlaceTrendingCard({ place }: PlaceTrendingCardProps) {
   };
 
   return (
-    <div className="flex items-start justify-between gap-3 rounded-2xl border border-zinc-200 bg-white/90 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60">
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(`/places/${place.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") router.push(`/places/${place.id}`);
+      }}
+      className="flex cursor-pointer items-start justify-between gap-3 rounded-2xl border border-zinc-200 bg-white/90 p-4 shadow-sm transition-colors hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:bg-zinc-900/60"
+      aria-label={`장소 상세 보기: ${place.name}`}
+    >
       <div className="min-w-0">
         <h3 className="truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50">
           {place.name}
@@ -50,7 +61,10 @@ export function PlaceTrendingCard({ place }: PlaceTrendingCardProps) {
 
       <button
         type="button"
-        onClick={handleToggleLike}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleToggleLike();
+        }}
         disabled={loading}
         className="flex items-center gap-1 rounded-xl bg-zinc-50 px-2 py-1 ring-1 ring-zinc-100 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-950 dark:ring-zinc-800"
         aria-label="장소 좋아요 토글"
