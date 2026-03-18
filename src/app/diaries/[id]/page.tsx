@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import type { DiaryWithLikeScrap } from "@/features/diaries/api/types";
 import { fetchDiaryById, toggleDiaryLike, toggleDiaryScrap } from "@/features/diaries/api/client";
+import { DiaryCard } from "@/features/diaries/components/DiaryCard";
+import { fetchRelatedDiaries } from "@/features/diaries/api/client";
 
 export default function DiaryDetailPage() {
   const params = useParams<{ id: string }>();
@@ -18,6 +20,9 @@ export default function DiaryDetailPage() {
   const [diary, setDiary] = useState<DiaryWithLikeScrap | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [related, setRelated] = useState<DiaryWithLikeScrap[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
 
   useEffect(() => {
     if (!diaryId) return;
@@ -38,6 +43,32 @@ export default function DiaryDetailPage() {
       } finally {
         if (cancelled) return;
         setLoading(false);
+      }
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [diaryId]);
+
+  useEffect(() => {
+    if (!diaryId) return;
+
+    let cancelled = false;
+
+    async function run() {
+      setRelatedLoading(true);
+      try {
+        const res = await fetchRelatedDiaries(diaryId, { limit: 5, offset: 0 });
+        if (cancelled) return;
+        setRelated(res.items);
+      } catch {
+        if (cancelled) return;
+        setRelated([]);
+      } finally {
+        if (cancelled) return;
+        setRelatedLoading(false);
       }
     }
 
@@ -142,6 +173,32 @@ export default function DiaryDetailPage() {
                 {diary.content}
               </div>
             </div>
+
+            <section
+              aria-label="관련 일기"
+              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-100 dark:bg-zinc-900 dark:ring-zinc-800"
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">관련 일기</h2>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">최근 5개</span>
+              </div>
+
+              {relatedLoading ? (
+                <p className="py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                  로딩 중...
+                </p>
+              ) : related.length === 0 ? (
+                <p className="py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                  관련 일기가 없어요.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {related.map((d) => (
+                    <DiaryCard key={d.id} diary={d} />
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         ) : (
           <p className="py-6 text-center text-sm text-zinc-500">일기가 없어요.</p>

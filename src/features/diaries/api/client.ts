@@ -44,6 +44,21 @@ export async function fetchDiaryById(diaryId: string): Promise<DiaryWithLikeScra
   });
 }
 
+export async function fetchRelatedDiaries(
+  diaryId: string,
+  params: { limit?: number; offset?: number } = {},
+): Promise<PaginatedResponse<DiaryWithLikeScrap>> {
+  const query = buildQuery({
+    limit: params.limit ?? 5,
+    offset: params.offset ?? 0,
+  });
+
+  const accessToken = getAccessToken();
+  return getJson<PaginatedResponse<DiaryWithLikeScrap>>(`/api/diaries/${diaryId}/related${query}`, {
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+  });
+}
+
 export async function toggleDiaryLike(
   diaryId: string,
 ): Promise<{ liked: boolean; likeCount: number | null }> {
