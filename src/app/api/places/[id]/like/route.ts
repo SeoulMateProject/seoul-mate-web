@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
   params: {
@@ -8,12 +9,10 @@ type RouteContext = {
 };
 
 export async function POST(request: Request, context: RouteContext) {
-  const body = await request.json().catch(() => null);
+  const user = await getUserFromRequest(request);
 
-  const userId = body?.userId;
-
-  if (typeof userId !== "string") {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const placeId = context.params.id;
@@ -29,7 +28,7 @@ export async function POST(request: Request, context: RouteContext) {
   const existing = await prisma.placeLike.findUnique({
     where: {
       userId_placeId: {
-        userId,
+        userId: user.id,
         placeId,
       },
     },
@@ -42,7 +41,7 @@ export async function POST(request: Request, context: RouteContext) {
   } else {
     await prisma.placeLike.create({
       data: {
-        userId,
+        userId: user.id,
         placeId,
       },
     });
