@@ -62,14 +62,14 @@ export function SeoulDistrictMap({ selected, onSelect }: SeoulDistrictMapProps) 
   return (
     <div className="w-full">
       <div className="relative mx-auto aspect-square max-w-sm overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-        <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 opacity-40">
           <Image
-            src="/images/seoul-district-map.png"
+            src="/icons/seoul-district-map.png"
             alt="서울시 구 지도"
             fill
             priority
             sizes="(max-width: 768px) 100vw, 400px"
-            className="object-cover"
+            className="object-contain"
           />
         </div>
 
