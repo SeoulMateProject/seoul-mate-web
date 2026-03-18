@@ -4,9 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import type { DiaryWithLikeScrap } from "@/features/diaries/api/types";
-import { fetchDiaryById, toggleDiaryLike, toggleDiaryScrap } from "@/features/diaries/api/client";
+import {
+  fetchDiaryById,
+  toggleDiaryLike,
+  toggleDiaryScrap,
+  deleteDiary,
+  fetchRelatedDiaries,
+} from "@/features/diaries/api/client";
 import { DiaryCard } from "@/features/diaries/components/DiaryCard";
-import { fetchRelatedDiaries } from "@/features/diaries/api/client";
 
 export default function DiaryDetailPage() {
   const params = useParams<{ id: string }>();
@@ -110,6 +115,24 @@ export default function DiaryDetailPage() {
     }
   };
 
+  const handleEdit = () => {
+    if (!diary) return;
+    router.push(`/diaries/${diary.id}/edit`);
+  };
+
+  const handleDelete = async () => {
+    if (!diary) return;
+    if (!window.confirm("일기를 삭제할까요?")) return;
+
+    try {
+      await deleteDiary(diary.id);
+      router.replace("/diaries");
+    } catch (e) {
+      console.error(e);
+      alert("삭제에 실패했어요. 다시 시도해주세요.");
+    }
+  };
+
   const heartSrc = diary && diary.liked ? "/icons/heart-active.svg" : "/icons/heart.svg";
   const scrapSrc = diary && diary.scrapped ? "/icons/diary-active.svg" : "/icons/diary.svg";
 
@@ -125,7 +148,22 @@ export default function DiaryDetailPage() {
             뒤로
           </button>
           <div className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">일기 상세</div>
-          <div className="h-8 w-[65px]" />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleEdit}
+              className="rounded-xl bg-white px-3 py-1.5 text-xs font-medium ring-1 ring-zinc-100 hover:bg-zinc-50 dark:bg-zinc-900 dark:ring-zinc-800"
+            >
+              수정
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-medium text-red-500 ring-1 ring-red-100 hover:bg-red-100 dark:bg-red-950/30 dark:ring-red-900/40"
+            >
+              삭제
+            </button>
+          </div>
         </div>
 
         {loading ? (

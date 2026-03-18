@@ -119,25 +119,6 @@ export async function createDiary(params: {
   const accessToken = getAccessToken();
   if (!accessToken) throw new Error("Unauthorized");
 
-  const res = await fetch(`/api/diaries`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      placeId: params.placeId,
-      title: params.title,
-      content: params.content,
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    const message = text || `Request failed: ${res.status} ${res.statusText}`;
-    throw new Error(message);
-  }
-
   return getJson<Diary>(`/api/diaries`, {
     method: "POST",
     headers: {
@@ -150,4 +131,39 @@ export async function createDiary(params: {
       content: params.content,
     }),
   });
+}
+
+export async function updateDiary(
+  diaryId: string,
+  params: { title?: string; content?: string },
+): Promise<Diary> {
+  const accessToken = getAccessToken();
+  if (!accessToken) throw new Error("Unauthorized");
+
+  return getJson<Diary>(`/api/diaries/${diaryId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(params),
+  });
+}
+
+export async function deleteDiary(diaryId: string): Promise<void> {
+  const accessToken = getAccessToken();
+  if (!accessToken) throw new Error("Unauthorized");
+
+  const res = await fetch(`/api/diaries/${diaryId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok && res.status !== 204) {
+    const text = await res.text().catch(() => "");
+    const message = text || `Request failed: ${res.status} ${res.statusText}`;
+    throw new Error(message);
+  }
 }
