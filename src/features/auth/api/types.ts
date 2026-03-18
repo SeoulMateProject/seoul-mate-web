@@ -3,6 +3,11 @@ export interface SignInRequest {
   password: string;
 }
 
+export interface SignUpRequest {
+  email: string;
+  password: string;
+}
+
 export interface SignInSuccessResponse {
   user: {
     id: string;
@@ -21,3 +26,6 @@ export interface SignInErrorResponse {
     message: string;
   };
 }
+
+export type SignUpSuccessResponse = SignInSuccessResponse;
+export type SignUpErrorResponse = SignInErrorResponse;

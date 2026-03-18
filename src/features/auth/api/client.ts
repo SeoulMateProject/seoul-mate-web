@@ -1,4 +1,11 @@
-import type { SignInRequest, SignInSuccessResponse, SignInErrorResponse } from "./types";
+import type {
+  SignInRequest,
+  SignInSuccessResponse,
+  SignInErrorResponse,
+  SignUpRequest,
+  SignUpSuccessResponse,
+  SignUpErrorResponse,
+} from "./types";
 
 async function postJson<TSuccess, TError>(
   url: string,
@@ -30,4 +37,8 @@ async function postJson<TSuccess, TError>(
 
 export async function signIn(request: SignInRequest) {
   return postJson<SignInSuccessResponse, SignInErrorResponse>("/api/auth/sign-in", request);
+}
+
+export async function signUp(request: SignUpRequest) {
+  return postJson<SignUpSuccessResponse, SignUpErrorResponse>("/api/auth/sign-up", request);
 }
