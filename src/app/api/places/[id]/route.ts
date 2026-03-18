@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
   params: {
@@ -7,7 +8,7 @@ type RouteContext = {
   };
 };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   const place = await prisma.place.findUnique({
     where: {
       id: context.params.id,
@@ -18,5 +19,22 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Place not found" }, { status: 404 });
   }
 
-  return NextResponse.json(place);
+  const user = await getPrismaUserFromRequest(request);
+  const liked = user
+    ? await prisma.placeLike
+        .findUnique({
+          where: {
+            userId_placeId: {
+              userId: user.id,
+              placeId: place.id,
+            },
+          },
+        })
+        .then((v) => Boolean(v))
+    : false;
+
+  return NextResponse.json({
+    ...place,
+    liked,
+  });
 }
