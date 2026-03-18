@@ -16,12 +16,10 @@ export async function GET(request: Request) {
   const likeGroups = await prisma.placeLike.groupBy({
     by: ["placeId"],
     where: {},
-    _count: {
-      _all: true,
-    },
+    _count: { id: true },
     orderBy: {
       _count: {
-        _all: "desc",
+        id: "desc",
       },
     },
     take,
@@ -30,9 +28,39 @@ export async function GET(request: Request) {
   const placeIds = likeGroups.map((g) => g.placeId);
 
   if (placeIds.length === 0) {
+    const places = await prisma.place.findMany({
+      where: {
+        ...(district ? { district: { equals: district } } : {}),
+      },
+      select: {
+        id: true,
+        externalId: true,
+        name: true,
+        district: true,
+        address: true,
+        newAddress: true,
+        phone: true,
+        website: true,
+        openingHours: true,
+        openDays: true,
+        closedDays: true,
+        transportInfo: true,
+        tags: true,
+        accessibility: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take,
+    });
+
     return NextResponse.json({
-      items: [],
-      total: 0,
+      items: places.map((p) => ({
+        ...p,
+        likeCount: 0,
+        liked: false,
+      })),
+      total: places.length,
       limit: take,
     });
   }
@@ -75,7 +103,7 @@ export async function GET(request: Request) {
 
   const likeCountMap = new Map<string, number>();
   for (const g of likeGroups) {
-    likeCountMap.set(g.placeId, g._count._all);
+    likeCountMap.set(g.placeId, g._count.id);
   }
 
   const likedSet = new Set(likedRows.map((r) => r.placeId));
