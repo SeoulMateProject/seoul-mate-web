@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function POST(request: Request, context: RouteContext) {
@@ -15,7 +15,7 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const diaryId = context.params.id;
+  const diaryId = (await context.params).id;
 
   const diary = await prisma.diary.findUnique({
     where: { id: diaryId },

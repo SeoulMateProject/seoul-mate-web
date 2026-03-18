@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function GET(request: Request, context: RouteContext) {
@@ -17,7 +17,7 @@ export async function GET(request: Request, context: RouteContext) {
 
   const { searchParams } = new URL(request.url);
 
-  const placeId = context.params.id;
+  const placeId = (await context.params).id;
   const limitParam = searchParams.get("limit");
   const offsetParam = searchParams.get("offset");
 
