@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -20,5 +21,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  return NextResponse.json({ user: data.user }, { status: 201 });
+  const user = data.user;
+
+  if (!user) {
+    return NextResponse.json({ error: "User not returned from Supabase" }, { status: 500 });
+  }
+
+  await prisma.user.create({
+    data: {
+      supabaseUserId: user.id,
+      email: user.email ?? email,
+      profile: {
+        create: {},
+      },
+    },
+  });
+
+  return NextResponse.json({ user }, { status: 201 });
 }
