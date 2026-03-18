@@ -52,8 +52,38 @@ export async function GET(request: Request) {
     prisma.placeLike.count({ where }),
   ]);
 
+  const placeIds = likes.map((l) => l.placeId);
+
+  const [likeGroups, diaryGroups] = await Promise.all([
+    placeIds.length
+      ? prisma.placeLike.groupBy({
+          by: ["placeId"],
+          where: { placeId: { in: placeIds } },
+          _count: { _all: true },
+        })
+      : Promise.resolve([] as Array<{ placeId: string; _count: { _all: number } }>),
+    placeIds.length
+      ? prisma.diary.groupBy({
+          by: ["placeId"],
+          where: { placeId: { in: placeIds } },
+          _count: { _all: true },
+        })
+      : Promise.resolve([] as Array<{ placeId: string; _count: { _all: number } }>),
+  ]);
+
+  const likeCountMap = new Map<string, number>();
+  for (const g of likeGroups) likeCountMap.set(g.placeId, g._count._all);
+
+  const diaryCountMap = new Map<string, number>();
+  for (const g of diaryGroups) diaryCountMap.set(g.placeId, g._count._all);
+
   return NextResponse.json({
-    items: likes.map((l) => l.place),
+    items: likes.map((l) => ({
+      ...l.place,
+      likeCount: likeCountMap.get(l.placeId) ?? 0,
+      diaryCount: diaryCountMap.get(l.placeId) ?? 0,
+      liked: true,
+    })),
     total,
     limit: take,
     offset: skip,
