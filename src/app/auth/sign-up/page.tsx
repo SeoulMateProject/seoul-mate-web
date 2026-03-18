@@ -51,6 +51,7 @@ export default function SignUpPage() {
       const token = result.data.session?.access_token;
       if (token) {
         window.localStorage.setItem("access_token", token);
+        window.localStorage.setItem("user_email", email);
       }
 
       router.push("/");

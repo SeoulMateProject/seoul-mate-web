@@ -42,8 +42,8 @@ export default function SignInPage() {
 
       const token = result.data.session?.access_token;
       if (token) {
-        // 간단한 토큰 저장: 이후 요청 시 Authorization 헤더로 사용 예정
         window.localStorage.setItem("access_token", token);
+        window.localStorage.setItem("user_email", email);
       }
 
       router.push(callbackUrl);
