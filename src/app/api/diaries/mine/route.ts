@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth";
+import { getPrismaUserFromRequest } from "@/lib/auth";
 
 export async function GET(request: Request) {
-  const user = await getUserFromRequest(request);
+  const user = await getPrismaUserFromRequest(request);
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
