@@ -1,6 +1,4 @@
 "use client";
-
-import Image from "next/image";
 import type { DistrictCode } from "../api/types";
 import { SEOUL_DISTRICTS } from "../constants/districts";
 
@@ -62,18 +60,7 @@ export function SeoulDistrictMap({ selected, onSelect }: SeoulDistrictMapProps) 
   return (
     <div className="w-full">
       <div className="relative mx-auto aspect-square max-w-sm overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-        <div className="absolute inset-0 opacity-40">
-          <Image
-            src="/icons/seoul-district-map.png"
-            alt="서울시 구 지도"
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 400px"
-            className="object-contain"
-          />
-        </div>
-
-        <div className="relative grid h-full w-full grid-cols-5 grid-rows-6 gap-1 p-3">
+        <div className="grid h-full w-full grid-cols-5 grid-rows-6 gap-1 p-3">
           {positionedDistricts
             .filter((d) => ALL_DISTRICT_CODES.has(d.code))
             .map((d) => {
