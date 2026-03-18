@@ -29,8 +29,34 @@ export async function GET(request: Request) {
     prisma.diary.count({ where: { userId: user.id } }),
   ]);
 
+  const diaryIds = items.map((d) => d.id);
+
+  const [likes, scraps] = await Promise.all([
+    diaryIds.length
+      ? prisma.diaryLike.findMany({
+          where: { userId: user.id, diaryId: { in: diaryIds } },
+          select: { diaryId: true },
+        })
+      : Promise.resolve([] as Array<{ diaryId: string }>),
+    diaryIds.length
+      ? prisma.diaryScrap.findMany({
+          where: { userId: user.id, diaryId: { in: diaryIds } },
+          select: { diaryId: true },
+        })
+      : Promise.resolve([] as Array<{ diaryId: string }>),
+  ]);
+
+  const likedSet = new Set(likes.map((l) => l.diaryId));
+  const scrappedSet = new Set(scraps.map((s) => s.diaryId));
+
+  const enriched = items.map((d) => ({
+    ...d,
+    liked: likedSet.has(d.id),
+    scrapped: scrappedSet.has(d.id),
+  }));
+
   return NextResponse.json({
-    items,
+    items: enriched,
     total,
     limit: take,
     offset: skip,

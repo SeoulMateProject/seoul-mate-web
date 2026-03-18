@@ -41,8 +41,56 @@ export async function GET(request: Request) {
     prisma.placeList.count({ where }),
   ]);
 
+  const placeIds = items.flatMap((list) => list.items.map((it) => it.place.id));
+
+  const uniqPlaceIds = Array.from(new Set(placeIds));
+
+  const [likeGroups, likedRows, diaryGroups] = await Promise.all([
+    uniqPlaceIds.length
+      ? prisma.placeLike.groupBy({
+          by: ["placeId"],
+          where: { placeId: { in: uniqPlaceIds } },
+          _count: { _all: true },
+        })
+      : Promise.resolve([] as Array<{ placeId: string; _count: { _all: number } }>),
+    uniqPlaceIds.length
+      ? prisma.placeLike.findMany({
+          where: { userId: user.id, placeId: { in: uniqPlaceIds } },
+          select: { placeId: true },
+        })
+      : Promise.resolve([] as Array<{ placeId: string }>),
+    uniqPlaceIds.length
+      ? prisma.diary.groupBy({
+          by: ["placeId"],
+          where: { placeId: { in: uniqPlaceIds } },
+          _count: { _all: true },
+        })
+      : Promise.resolve([] as Array<{ placeId: string; _count: { _all: number } }>),
+  ]);
+
+  const likeCountMap = new Map<string, number>();
+  for (const g of likeGroups) likeCountMap.set(g.placeId, g._count._all);
+
+  const likedSet = new Set(likedRows.map((r) => r.placeId));
+
+  const diaryCountMap = new Map<string, number>();
+  for (const g of diaryGroups) diaryCountMap.set(g.placeId, g._count._all);
+
+  const enrichedItems = items.map((list) => ({
+    ...list,
+    items: list.items.map((it) => ({
+      ...it,
+      place: {
+        ...it.place,
+        likeCount: likeCountMap.get(it.place.id) ?? 0,
+        liked: likedSet.has(it.place.id),
+        diaryCount: diaryCountMap.get(it.place.id) ?? 0,
+      },
+    })),
+  }));
+
   return NextResponse.json({
-    items,
+    items: enrichedItems,
     total,
     limit: take,
     offset: skip,
