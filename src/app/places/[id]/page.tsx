@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { togglePlaceLike } from "@/features/places/api/client";
 
@@ -48,6 +48,7 @@ function getAccessToken(): string | null {
 
 export default function PlaceDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const placeId = useMemo(() => {
     if (!params?.id) return null;
     return Array.isArray(params.id) ? params.id[0] : params.id;
@@ -192,6 +193,11 @@ export default function PlaceDetailPage() {
     }
   };
 
+  const handleCreateDiary = () => {
+    if (!placeId) return;
+    router.push(`/diaries/new?placeId=${placeId}`);
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-zinc-50 px-4 py-6 dark:bg-black">
       <div className="mx-auto max-w-md">
@@ -232,7 +238,17 @@ export default function PlaceDetailPage() {
                   <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
                     이 장소의 일기
                   </h2>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">최근 5개</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCreateDiary}
+                      className="rounded-xl bg-[#0D00A4] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:bg-[#0D00A4]"
+                      aria-label="일기 작성"
+                    >
+                      일기 작성
+                    </button>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">최근 5개</span>
+                  </div>
                 </div>
 
                 {diariesLoading ? (

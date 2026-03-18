@@ -1,4 +1,4 @@
-import type { DiaryWithLikeScrap, PaginatedResponse } from "./types";
+import type { Diary, DiaryWithLikeScrap, PaginatedResponse } from "./types";
 
 const DEFAULT_LIMIT = 20;
 
@@ -109,4 +109,45 @@ export async function toggleDiaryScrap(diaryId: string): Promise<{ scrapped: boo
   const json = (await res.json()) as { scraped: boolean };
 
   return { scrapped: Boolean(json.scraped) };
+}
+
+export async function createDiary(params: {
+  placeId: string;
+  title: string;
+  content: string;
+}): Promise<Diary> {
+  const accessToken = getAccessToken();
+  if (!accessToken) throw new Error("Unauthorized");
+
+  const res = await fetch(`/api/diaries`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      placeId: params.placeId,
+      title: params.title,
+      content: params.content,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    const message = text || `Request failed: ${res.status} ${res.statusText}`;
+    throw new Error(message);
+  }
+
+  return getJson<Diary>(`/api/diaries`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      placeId: params.placeId,
+      title: params.title,
+      content: params.content,
+    }),
+  });
 }
