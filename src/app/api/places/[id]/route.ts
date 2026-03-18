@@ -3,15 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function GET(request: Request, context: RouteContext) {
   const place = await prisma.place.findUnique({
     where: {
-      id: context.params.id,
+      id: (await context.params).id,
     },
   });
 
