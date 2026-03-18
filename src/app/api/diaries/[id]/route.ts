@@ -8,7 +8,7 @@ type RouteContext = {
   };
 };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   const diary = await prisma.diary.findUnique({
     where: { id: context.params.id },
   });
@@ -17,7 +17,39 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Diary not found" }, { status: 404 });
   }
 
-  return NextResponse.json(diary);
+  const user = await getPrismaUserFromRequest(request);
+
+  const liked = user
+    ? await prisma.diaryLike
+        .findUnique({
+          where: {
+            userId_diaryId: {
+              userId: user.id,
+              diaryId: diary.id,
+            },
+          },
+        })
+        .then((v) => Boolean(v))
+    : false;
+
+  const scrapped = user
+    ? await prisma.diaryScrap
+        .findUnique({
+          where: {
+            userId_diaryId: {
+              userId: user.id,
+              diaryId: diary.id,
+            },
+          },
+        })
+        .then((v) => Boolean(v))
+    : false;
+
+  return NextResponse.json({
+    ...diary,
+    liked,
+    scrapped,
+  });
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
