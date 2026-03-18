@@ -43,3 +43,61 @@ export async function GET(request: Request) {
     offset: skip,
   });
 }
+
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => null);
+
+  const userId = body?.userId;
+  const title = body?.title;
+  const description = body?.description ?? null;
+  const placeIds: unknown = body?.placeIds ?? [];
+
+  if (typeof userId !== "string" || typeof title !== "string" || !Array.isArray(placeIds)) {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  if (placeIds.length === 0) {
+    return NextResponse.json({ error: "placeIds must not be empty" }, { status: 400 });
+  }
+
+  const [user, places] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.place.findMany({
+      where: { id: { in: placeIds as string[] } },
+    }),
+  ]);
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  if (places.length !== placeIds.length) {
+    return NextResponse.json({ error: "One or more places not found" }, { status: 404 });
+  }
+
+  const placeList = await prisma.placeList.create({
+    data: {
+      userId,
+      title,
+      description,
+      items: {
+        create: (placeIds as string[]).map((placeId, index) => ({
+          placeId,
+          order: index,
+        })),
+      },
+    },
+    include: {
+      items: {
+        include: {
+          place: true,
+        },
+        orderBy: {
+          order: "asc",
+        },
+      },
+    },
+  });
+
+  return NextResponse.json(placeList, { status: 201 });
+}
