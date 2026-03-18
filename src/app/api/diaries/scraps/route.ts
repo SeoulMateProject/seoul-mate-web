@@ -43,8 +43,23 @@ export async function GET(request: Request) {
     prisma.diaryScrap.count({ where }),
   ]);
 
+  const diaryIds = scraps.map((s) => s.diaryId);
+
+  const likes = diaryIds.length
+    ? await prisma.diaryLike.findMany({
+        where: { userId: user.id, diaryId: { in: diaryIds } },
+        select: { diaryId: true },
+      })
+    : [];
+
+  const likedSet = new Set(likes.map((l) => l.diaryId));
+
   return NextResponse.json({
-    items: scraps.map((s) => s.diary),
+    items: scraps.map((s) => ({
+      ...s.diary,
+      liked: likedSet.has(s.diaryId),
+      scrapped: true,
+    })),
     total,
     limit: take,
     offset: skip,
