@@ -36,3 +36,45 @@ export async function GET(request: Request) {
     offset: skip,
   });
 }
+
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => null);
+
+  const userId = body?.userId;
+  const placeId = body?.placeId;
+  const title = body?.title;
+  const content = body?.content;
+
+  if (
+    typeof userId !== "string" ||
+    typeof placeId !== "string" ||
+    typeof title !== "string" ||
+    typeof content !== "string"
+  ) {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  const [user, place] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.place.findUnique({ where: { id: placeId } }),
+  ]);
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  if (!place) {
+    return NextResponse.json({ error: "Place not found" }, { status: 404 });
+  }
+
+  const diary = await prisma.diary.create({
+    data: {
+      userId,
+      placeId,
+      title,
+      content,
+    },
+  });
+
+  return NextResponse.json(diary, { status: 201 });
+}
