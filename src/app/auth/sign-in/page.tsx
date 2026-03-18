@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout } from "@/features/auth/components/AuthLayout";
 import { AuthTextField } from "@/features/auth/components/AuthTextField";
@@ -75,6 +76,16 @@ export default function SignInPage() {
         />
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
         <AuthSubmitButton loading={loading}>로그인</AuthSubmitButton>
+
+        <p className="pt-1 text-center text-xs text-zinc-500">
+          계정이 없으신가요?{" "}
+          <Link
+            className="font-medium text-[#0D00A4] hover:underline"
+            href={`/auth/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+          >
+            회원가입
+          </Link>
+        </p>
       </form>
     </AuthLayout>
   );

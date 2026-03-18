@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/features/auth/components/AuthLayout";
 import { AuthTextField } from "@/features/auth/components/AuthTextField";
@@ -88,6 +89,13 @@ export default function SignUpPage() {
         />
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
         <AuthSubmitButton loading={loading}>회원가입</AuthSubmitButton>
+
+        <p className="pt-1 text-center text-xs text-zinc-500">
+          이미 계정이 있으신가요?{" "}
+          <Link className="font-medium text-[#0D00A4] hover:underline" href="/auth/sign-in">
+            로그인
+          </Link>
+        </p>
       </form>
     </AuthLayout>
   );
