@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { DistrictCode } from "../api/types";
-import { fetchPlaces, type Place } from "../api/client";
+import { fetchPlaces, type PlaceWithLike } from "../api/client";
 
 export function usePlacesSearch(params: { q: string; district?: DistrictCode | null }) {
   const q = params.q.trim();
   const district = params.district ?? undefined;
 
-  const [items, setItems] = useState<Place[]>([]);
+  const [items, setItems] = useState<PlaceWithLike[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

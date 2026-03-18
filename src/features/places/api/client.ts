@@ -37,9 +37,14 @@ export interface FetchPlacesParams {
   offset?: number;
 }
 
+export interface PlaceWithLike extends Place {
+  likeCount: number;
+  liked: boolean;
+}
+
 export async function fetchPlaces(
   params: FetchPlacesParams = {},
-): Promise<PaginatedResponse<Place>> {
+): Promise<PaginatedResponse<PlaceWithLike>> {
   const query = buildQuery({
     q: params.q,
     district: params.district,
@@ -47,7 +52,7 @@ export async function fetchPlaces(
     offset: params.offset,
   });
 
-  return getJson<PaginatedResponse<Place>>(`/api/places${query}`);
+  return getJson<PaginatedResponse<PlaceWithLike>>(`/api/places${query}`);
 }
 
 export interface TrendingPlace extends Place {

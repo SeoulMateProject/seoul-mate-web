@@ -1,8 +1,8 @@
-import type { Place } from "../api/client";
+import type { PlaceWithLike } from "../api/client";
 import { PlaceSearchCard } from "./PlaceSearchCard";
 
 interface PlaceSearchListProps {
-  items: Place[];
+  items: PlaceWithLike[];
 }
 
 export function PlaceSearchList({ items }: PlaceSearchListProps) {
