@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getPrismaUserFromRequest } from "@/lib/auth";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+  const user = await getPrismaUserFromRequest(request);
 
-  const userId = searchParams.get("userId") ?? undefined;
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
 
   const limitParam = searchParams.get("limit");
   const offsetParam = searchParams.get("offset");
@@ -12,7 +17,7 @@ export async function GET(request: Request) {
   const take = Math.min(Number(limitParam) || 20, 50);
   const skip = Number(offsetParam) || 0;
 
-  const where = userId ? { userId } : {};
+  const where = { userId: user.id };
 
   const [items, total] = await Promise.all([
     prisma.placeList.findMany({
@@ -47,12 +52,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
 
-  const userId = body?.userId;
   const title = body?.title;
   const description = body?.description ?? null;
   const placeIds: unknown = body?.placeIds ?? [];
 
-  if (typeof userId !== "string" || typeof title !== "string" || !Array.isArray(placeIds)) {
+  const user = await getPrismaUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (typeof title !== "string" || !Array.isArray(placeIds)) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
@@ -60,16 +70,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "placeIds must not be empty" }, { status: 400 });
   }
 
-  const [user, places] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId } }),
-    prisma.place.findMany({
-      where: { id: { in: placeIds as string[] } },
-    }),
-  ]);
-
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  const places = await prisma.place.findMany({
+    where: { id: placeIds as string[] },
+  });
 
   if (places.length !== placeIds.length) {
     return NextResponse.json({ error: "One or more places not found" }, { status: 404 });
@@ -77,7 +80,7 @@ export async function POST(request: Request) {
 
   const placeList = await prisma.placeList.create({
     data: {
-      userId,
+      userId: user.id,
       title,
       description,
       items: {

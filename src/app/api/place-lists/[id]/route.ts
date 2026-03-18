@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
   params: {
@@ -8,10 +9,14 @@ type RouteContext = {
 };
 
 export async function GET(_request: Request, context: RouteContext) {
-  const list = await prisma.placeList.findUnique({
-    where: {
-      id: context.params.id,
-    },
+  const user = await getPrismaUserFromRequest(_request);
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const list = await prisma.placeList.findFirst({
+    where: { id: context.params.id, userId: user.id },
     include: {
       items: {
         include: {

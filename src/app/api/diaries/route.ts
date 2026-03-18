@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getPrismaUserFromRequest } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   const placeId = searchParams.get("placeId") ?? undefined;
-  const userId = searchParams.get("userId") ?? undefined;
 
   const limitParam = searchParams.get("limit");
   const offsetParam = searchParams.get("offset");
@@ -13,9 +13,7 @@ export async function GET(request: Request) {
   const take = Math.min(Number(limitParam) || 20, 50);
   const skip = Number(offsetParam) || 0;
 
-  const where = {
-    AND: [placeId ? { placeId } : {}, userId ? { userId } : {}],
-  };
+  const where = placeId ? { placeId } : {};
 
   const [items, total] = await Promise.all([
     prisma.diary.findMany({
@@ -40,28 +38,21 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
 
-  const userId = body?.userId;
   const placeId = body?.placeId;
   const title = body?.title;
   const content = body?.content;
 
-  if (
-    typeof userId !== "string" ||
-    typeof placeId !== "string" ||
-    typeof title !== "string" ||
-    typeof content !== "string"
-  ) {
+  if (typeof placeId !== "string" || typeof title !== "string" || typeof content !== "string") {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const [user, place] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId } }),
-    prisma.place.findUnique({ where: { id: placeId } }),
-  ]);
+  const user = await getPrismaUserFromRequest(request);
 
   if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const place = await prisma.place.findUnique({ where: { id: placeId } });
 
   if (!place) {
     return NextResponse.json({ error: "Place not found" }, { status: 404 });
@@ -69,7 +60,7 @@ export async function POST(request: Request) {
 
   const diary = await prisma.diary.create({
     data: {
-      userId,
+      userId: user.id,
       placeId,
       title,
       content,
