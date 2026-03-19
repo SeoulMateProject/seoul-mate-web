@@ -119,7 +119,7 @@ export async function POST(request: Request) {
   }
 
   const places = await prisma.place.findMany({
-    where: { id: placeIds as string[] },
+    where: { id: { in: placeIds as string[] } },
   });
 
   if (places.length !== placeIds.length) {

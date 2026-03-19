@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 function parsePagination(searchParams: URLSearchParams) {
@@ -34,7 +34,7 @@ export async function GET(request: Request, context: RouteContext) {
   const { take, skip } = parsePagination(searchParams);
 
   const list = await prisma.placeList.findFirst({
-    where: { id: context.params.id, userId: user.id },
+    where: { id: (await context.params).id, userId: user.id },
   });
 
   if (!list) {

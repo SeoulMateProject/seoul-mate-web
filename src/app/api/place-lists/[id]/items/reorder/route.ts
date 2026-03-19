@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function PATCH(request: Request, context: RouteContext) {
@@ -27,7 +27,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const list = await prisma.placeList.findFirst({
-    where: { id: context.params.id, userId: user.id },
+    where: { id: (await context.params).id, userId: user.id },
   });
 
   if (!list) {

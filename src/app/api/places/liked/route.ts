@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
+import type { Prisma } from "@/generated/prisma/client";
 
 export async function GET(request: Request) {
   const user = await getPrismaUserFromRequest(request);
@@ -20,21 +21,23 @@ export async function GET(request: Request) {
   const take = Math.min(Number(limitParam) || 20, 50);
   const skip = Number(offsetParam) || 0;
 
-  const where = {
+  const placeFilter: Prisma.PlaceWhereInput = {
+    ...(district ? { district: { equals: district } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { address: { contains: q, mode: "insensitive" as const } },
+            { newAddress: { contains: q, mode: "insensitive" as const } },
+            { tags: { has: q } },
+          ],
+        }
+      : {}),
+  };
+
+  const where: Prisma.PlaceLikeWhereInput = {
     userId: user.id,
-    place: {
-      ...(district ? { district: { equals: district } } : {}),
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { address: { contains: q, mode: "insensitive" } },
-              { newAddress: { contains: q, mode: "insensitive" } },
-              { tags: { has: q } },
-            ],
-          }
-        : {}),
-    },
+    place: placeFilter,
   };
 
   const [likes, total] = await Promise.all([

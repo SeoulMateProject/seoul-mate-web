@@ -19,9 +19,9 @@ export async function GET(request: Request) {
       q
         ? {
             OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { address: { contains: q, mode: "insensitive" } },
-              { newAddress: { contains: q, mode: "insensitive" } },
+              { name: { contains: q, mode: "insensitive" as const } },
+              { address: { contains: q, mode: "insensitive" as const } },
+              { newAddress: { contains: q, mode: "insensitive" as const } },
               { tags: { has: q } },
             ],
           }
