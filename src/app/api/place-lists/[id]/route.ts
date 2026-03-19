@@ -3,20 +3,20 @@ import { prisma } from "@/lib/prisma";
 import { getPrismaUserFromRequest } from "@/lib/auth";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function GET(request: Request, context: RouteContext) {
-  const user = await getPrismaUserFromRequest(_request);
+  const user = await getPrismaUserFromRequest(request);
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const list = await prisma.placeList.findFirst({
-    where: { id: context.params.id, userId: user.id },
+    where: { id: (await context.params).id, userId: user.id },
     include: {
       items: {
         include: {
@@ -104,7 +104,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const list = await prisma.placeList.findFirst({
-    where: { id: context.params.id, userId: user.id },
+    where: { id: (await context.params).id, userId: user.id },
   });
 
   if (!list) {

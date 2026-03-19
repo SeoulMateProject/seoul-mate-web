@@ -11,7 +11,8 @@ function createPrismaClient() {
     connectionString: process.env.DATABASE_URL,
   });
 
-  const adapter = new PrismaPg(pool);
+  // @types/pg 버전 충돌 방지 (adapter-pg 내부 번들 pg 타입과의 미스매치)
+  const adapter = new PrismaPg(pool as unknown as ConstructorParameters<typeof PrismaPg>[0]);
 
   return new PrismaClient({
     adapter,

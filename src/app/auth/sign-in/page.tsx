@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout } from "@/features/auth/components/AuthLayout";
@@ -8,7 +8,7 @@ import { AuthTextField } from "@/features/auth/components/AuthTextField";
 import { AuthSubmitButton } from "@/features/auth/components/AuthSubmitButton";
 import { signIn } from "@/features/auth/api/client";
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -56,37 +56,45 @@ export default function SignInPage() {
   };
 
   return (
-    <AuthLayout title="로그인" description="서울의 핫한 장소와 코스를 보려면 먼저 로그인해 주세요.">
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <AuthTextField
-          label="이메일"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <AuthTextField
-          label="비밀번호"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error ? <p className="text-sm text-red-500">{error}</p> : null}
-        <AuthSubmitButton loading={loading}>로그인</AuthSubmitButton>
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <AuthTextField
+        label="이메일"
+        name="email"
+        type="email"
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <AuthTextField
+        label="비밀번호"
+        name="password"
+        type="password"
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      {error ? <p className="text-sm text-red-500">{error}</p> : null}
+      <AuthSubmitButton loading={loading}>로그인</AuthSubmitButton>
 
-        <p className="pt-1 text-center text-xs text-zinc-500">
-          계정이 없으신가요?{" "}
-          <Link
-            className="font-medium text-[#0D00A4] hover:underline"
-            href={`/auth/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-          >
-            회원가입
-          </Link>
-        </p>
-      </form>
+      <p className="pt-1 text-center text-xs text-zinc-500">
+        계정이 없으신가요?{" "}
+        <Link
+          className="font-medium text-[#0D00A4] hover:underline"
+          href={`/auth/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+        >
+          회원가입
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <AuthLayout title="로그인" description="서울의 핫한 장소와 코스를 보려면 먼저 로그인해 주세요.">
+      <Suspense>
+        <SignInForm />
+      </Suspense>
     </AuthLayout>
   );
 }

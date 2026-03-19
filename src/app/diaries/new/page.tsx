@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { Suspense, useMemo, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createDiary } from "@/features/diaries/api/client";
 
-export default function DiaryNewPage() {
+function DiaryNewForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -114,5 +114,13 @@ export default function DiaryNewPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function DiaryNewPage() {
+  return (
+    <Suspense>
+      <DiaryNewForm />
+    </Suspense>
   );
 }
