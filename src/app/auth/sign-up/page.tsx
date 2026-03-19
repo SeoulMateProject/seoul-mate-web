@@ -7,6 +7,7 @@ import { AuthLayout } from "@/features/auth/components/AuthLayout";
 import { AuthTextField } from "@/features/auth/components/AuthTextField";
 import { AuthSubmitButton } from "@/features/auth/components/AuthSubmitButton";
 import { signUp } from "@/features/auth/api/client";
+import { setAuthCookie } from "@/lib/authCookie";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -52,6 +53,7 @@ export default function SignUpPage() {
       if (token) {
         window.localStorage.setItem("access_token", token);
         window.localStorage.setItem("user_email", email);
+        setAuthCookie(token);
       }
 
       router.push("/");

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { clearAuthCookie } from "@/lib/authCookie";
 
 interface MenuItem {
   label: string;
@@ -34,6 +35,7 @@ export default function MorePage() {
     if (!confirm("로그아웃 하시겠어요?")) return;
     localStorage.removeItem("access_token");
     localStorage.removeItem("user_email");
+    clearAuthCookie();
     router.replace("/auth/sign-in");
   };
 
